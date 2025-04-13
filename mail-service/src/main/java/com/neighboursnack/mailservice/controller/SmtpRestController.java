@@ -2,12 +2,13 @@ package com.neighboursnack.mailservice.controller;
 
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpRequestDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpResponseDTO;
+import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpToggleRequestDTO;
 import com.neighboursnack.mailservice.service.SmtpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,12 @@ public class SmtpRestController {
 
     @PostMapping
     public ResponseEntity<SmtpResponseDTO> saveSmtp(@Valid @RequestBody SmtpRequestDTO smtpRequestDTO) {
-        return new ResponseEntity<>(smtpService.saveSmtp(smtpRequestDTO), HttpStatus.CREATED);
+        SmtpResponseDTO smtpResponseDTO = smtpService.saveSmtp(smtpRequestDTO);
+        return ResponseEntity.created(ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{uuid}")
+                .buildAndExpand(smtpResponseDTO.uuid())
+                .toUri()).body(smtpResponseDTO);
     }
 
     @GetMapping
@@ -41,6 +47,24 @@ public class SmtpRestController {
             @PathVariable UUID uuid,
             @Valid @RequestBody SmtpRequestDTO smtpRequestDTO) {
         return ResponseEntity.ok(smtpService.updateSmtp(uuid, smtpRequestDTO));
+    }
+
+    @PatchMapping("/{uuid}/toggle")
+    public ResponseEntity<SmtpResponseDTO> toggleSmtpActiveStatus(
+            @PathVariable UUID uuid,
+            @RequestBody SmtpToggleRequestDTO toggleRequestDTO) {
+        return ResponseEntity.ok(smtpService.toggleSmtpStatus(uuid, toggleRequestDTO));
+    }
+
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Void> deleteSmtp(@PathVariable UUID uuid) {
+        smtpService.deleteSmtp(uuid);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<SmtpResponseDTO> getActiveSmtp() {
+        return ResponseEntity.ok(smtpService.getActiveSmtp());
     }
 
 }

@@ -86,4 +86,7 @@ public class SmtpDTO {
         }
     }
 
+    public record SmtpToggleRequestDTO(boolean isActive) {
+    }
+
 }

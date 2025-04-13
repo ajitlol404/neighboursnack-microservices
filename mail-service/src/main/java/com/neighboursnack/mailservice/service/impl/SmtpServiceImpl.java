@@ -3,6 +3,7 @@ package com.neighboursnack.mailservice.service.impl;
 import com.neighboursnack.common.exception.SmtpException;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpRequestDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpResponseDTO;
+import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpToggleRequestDTO;
 import com.neighboursnack.mailservice.entity.Smtp;
 import com.neighboursnack.mailservice.repository.SmtpRepository;
 import com.neighboursnack.mailservice.service.SmtpService;
@@ -84,6 +85,40 @@ public class SmtpServiceImpl implements SmtpService {
         Smtp saved = smtpRepository.save(updated);
 
         return SmtpResponseDTO.fromEntity(saved);
+    }
+
+    @Override
+    @Transactional
+    public SmtpResponseDTO toggleSmtpStatus(UUID uuid, SmtpToggleRequestDTO toggleRequestDTO) {
+        Smtp smtp = smtpRepository.findSmtpByUuid(uuid);
+        boolean isActive = toggleRequestDTO.isActive();
+
+        if (isActive && !smtp.isActive()) {
+            smtpRepository.deactivateAll();
+        }
+
+        smtp.setActive(isActive);
+        Smtp updated = smtpRepository.save(smtp);
+
+        return SmtpResponseDTO.fromEntity(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSmtp(UUID uuid) {
+        Smtp smtp = smtpRepository.findSmtpByUuid(uuid);
+
+        // Optional: Prevent deleting if it's the only active config
+        if (smtp.isActive() && smtpRepository.countByIsActiveTrue() == 1) {
+            throw new IllegalStateException("Cannot delete the only active SMTP configuration");
+        }
+
+        smtpRepository.delete(smtp);
+    }
+
+    @Override
+    public SmtpResponseDTO getActiveSmtp() {
+        return SmtpResponseDTO.fromEntity(smtpRepository.findActiveSmtp());
     }
 
     private void testSmtpConfiguration(SmtpRequestDTO request) {
