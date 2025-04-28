@@ -13,10 +13,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.util.List;
 import java.util.UUID;
 
-import static com.neighboursnack.common.util.AppConstant.BASE_API_PATH;
+import static com.neighboursnack.common.util.AppConstant.ADMIN_BASE_API_PATH;
 
 @RestController
-@RequestMapping(BASE_API_PATH + "/smtp")
+@RequestMapping(ADMIN_BASE_API_PATH + "/smtp")
 @RequiredArgsConstructor
 public class SmtpRestController {
 

@@ -1,6 +1,7 @@
 package com.neighboursnack.mailservice.service.impl;
 
 import com.neighboursnack.common.exception.SmtpException;
+import com.neighboursnack.common.util.AppUtil;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpRequestDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpResponseDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpToggleRequestDTO;
@@ -8,17 +9,19 @@ import com.neighboursnack.mailservice.entity.Smtp;
 import com.neighboursnack.mailservice.repository.SmtpRepository;
 import com.neighboursnack.mailservice.service.SmtpService;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static com.neighboursnack.common.util.AppConstant.MAX_SMTP_CONFIGURATIONS;
-import static com.neighboursnack.common.util.AppConstant.SMTP_TIMEOUT_MS;
+import static com.neighboursnack.common.util.AppConstant.*;
+import static java.lang.Boolean.TRUE;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +45,7 @@ public class SmtpServiceImpl implements SmtpService {
         testSmtpConfiguration(smtpRequestDTO);
 
         // If this config is marked as active, deactivate all existing active configs
-        if (Boolean.TRUE.equals(smtpRequestDTO.isActive())) {
+        if (TRUE.equals(smtpRequestDTO.isActive())) {
             smtpRepository.deactivateAll(); // custom update query we'll define below
         }
 
@@ -76,7 +79,7 @@ public class SmtpServiceImpl implements SmtpService {
 
 
         // Deactivate others if this is set to active
-        if (Boolean.TRUE.equals(smtpRequestDTO.isActive())) {
+        if (TRUE.equals(smtpRequestDTO.isActive())) {
             smtpRepository.deactivateAll();
         }
 
@@ -121,6 +124,45 @@ public class SmtpServiceImpl implements SmtpService {
         return SmtpResponseDTO.fromEntity(smtpRepository.findActiveSmtp());
     }
 
+    @Override
+    public Smtp getActiveSmtpEntity() {
+        Smtp activeSmtp = smtpRepository.findActiveSmtp();
+        activeSmtp.setPassword(AppUtil.decodeBase64(activeSmtp.getPassword()));
+        return activeSmtp;
+    }
+
+    @Override
+    public void sendEmail(String to, String subject, String content) {
+        Smtp smtpConfig = getActiveSmtpEntity();
+
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(smtpConfig.getHost());
+        mailSender.setPort(smtpConfig.getPort());
+        mailSender.setUsername(smtpConfig.getUsername());
+        mailSender.setPassword(smtpConfig.getPassword());
+
+        Properties properties = mailSender.getJavaMailProperties();
+        properties.put(MAIL_SMTP_AUTH, TRUE.toString());
+        properties.put(MAIL_SMTP_STARTTLS, Boolean.toString(smtpConfig.isSsl()));
+
+        properties.put(MAIL_SMTP_CONNECTIONTIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
+        properties.put(MAIL_SMTP_TIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
+        properties.put(MAIL_SMTP_WRITETIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, TRUE, "UTF-8");
+
+            helper.setFrom(smtpConfig.getUsername());
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            throw new SmtpException("Failed to send email", e);
+        }
+    }
+
     private void testSmtpConfiguration(SmtpRequestDTO request) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(request.host());
@@ -129,14 +171,12 @@ public class SmtpServiceImpl implements SmtpService {
         mailSender.setPassword(request.password());
 
         Properties properties = mailSender.getJavaMailProperties();
-        properties.put("mail.smtp.auth", Boolean.TRUE.toString());
-        properties.put("mail.smtp.starttls.enable", Boolean.toString(!request.isSsl()));
-        properties.put("mail.smtp.ssl.enable", Boolean.toString(request.isSsl()));
+        properties.put(MAIL_SMTP_AUTH, TRUE.toString());
+        properties.put(MAIL_SMTP_STARTTLS, Boolean.toString(request.isSsl()));
 
-        // Set timeouts (10 seconds = 10000 milliseconds)
-        properties.put("mail.smtp.connectiontimeout", String.valueOf(SMTP_TIMEOUT_MS));
-        properties.put("mail.smtp.timeout", String.valueOf(SMTP_TIMEOUT_MS));
-        properties.put("mail.smtp.writetimeout", String.valueOf(SMTP_TIMEOUT_MS));
+        properties.put(MAIL_SMTP_CONNECTIONTIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
+        properties.put(MAIL_SMTP_TIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
+        properties.put(MAIL_SMTP_WRITETIMEOUT, String.valueOf(SMTP_TIMEOUT_MS));
 
         try {
             mailSender.testConnection();
