@@ -14,6 +14,7 @@ public class AppConstant {
 
     public static final long MAX_IMAGE_SIZE = 2L * 1024 * 1024; // 2 MB
     public static final List<String> ALLOWED_IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png");
+    public static final int VERIFICATION_EXPIRATION_MINUTES = 15;
 
     public static final int MAX_SMTP_CONFIGURATIONS = 5;
     public static final int SMTP_TIMEOUT_MS = 10000;
@@ -25,4 +26,7 @@ public class AppConstant {
 
     public static final String BASE_API_PATH = "/api/v1";
     public static final String ADMIN_BASE_API_PATH = BASE_API_PATH + "/admin";
+
+    public static final String NAME_REGEX = "^(?! )[a-zA-Z0-9 ]*(?<! )$";
+    public static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[^\s]*$";
 }

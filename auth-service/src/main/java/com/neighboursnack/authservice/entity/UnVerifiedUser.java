@@ -1,4 +1,4 @@
-package com.neighboursnack.mailservice.entity;
+package com.neighboursnack.authservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,13 +9,13 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "smtps")
+@Table(name = "unverified_users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Smtp {
+public class UnVerifiedUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,25 +29,10 @@ public class Smtp {
     @Column(nullable = false)
     private ZonedDateTime updatedAt;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
-    private String host;
-
-    @Column(nullable = false)
-    private int port;
-
-    @Column(nullable = false)
-    private String username;
-
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false)
-    private boolean isSsl;
-
-    @Column(nullable = false)
-    private boolean isActive;
+    @Column(nullable = false, length = 320, unique = true)
+    private String email;
 
 }

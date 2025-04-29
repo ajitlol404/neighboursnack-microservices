@@ -1,24 +1,29 @@
 package com.neighboursnack.authservice.security;
 
-import com.neighboursnack.authservice.entity.User;
-import com.neighboursnack.authservice.repository.UserRepository;
+import com.neighboursnack.authservice.security.jwt.JwtAuthenticationEntryPoint;
+import com.neighboursnack.authservice.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.List;
+import static com.neighboursnack.common.util.AppConstant.ADMIN_BASE_API_PATH;
+import static com.neighboursnack.common.util.AppConstant.BASE_API_PATH;
+
 
 @Configuration
 @EnableWebSecurity
@@ -26,10 +31,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final UserRepository userRepository;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final UserDetailsService userDetailsService;
 
-    private static final String[] PUBLIC_API_ENDPOINTS = {
-            "/"
+    private static final String[] PUBLIC_REST_APIS = {
+            "/h2-console/**",
+            BASE_API_PATH + "/signin",
+            BASE_API_PATH + "/unverified-users"
     };
 
     @Bean
@@ -38,39 +47,38 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain configure(HttpSecurity http, AuthenticationProvider authenticationProvider)
-            throws Exception {
-        http
-                .authorizeHttpRequests(authorizedHttpRequest -> authorizedHttpRequest
-                        .requestMatchers(PUBLIC_API_ENDPOINTS).permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .anyRequest()
-                        .authenticated())
-                .authenticationProvider(authenticationProvider)
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagement -> sessionManagement
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
-
-        return http.build();
+    AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
     @Bean
-    AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(email -> {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found."));
-            return new org.springframework.security.core.userdetails.User(user.getEmail(),
-                    user.getPassword(),
-                    user.isEnabled(),
-                    true,
-                    true,
-                    true,
-                    List.of(new SimpleGrantedAuthority(user.getRole().name()))) {
-            };
-        });
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-        return daoAuthenticationProvider;
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(req ->
+                        req.requestMatchers(PUBLIC_REST_APIS)
+                                .permitAll()
+                                .requestMatchers(ADMIN_BASE_API_PATH + "/**").hasRole("ADMIN")
+                                .anyRequest()
+                                .authenticated())
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(
+                                jwtAuthenticationEntryPoint))
+                .headers(h ->
+                        h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
 }

@@ -18,13 +18,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
-    Optional<User> findByUuid(UUID uuid);
-
     default User findUserByEmail(String email) {
         return findByEmail(email).orElseThrow(() -> new NoSuchElementException("User not found."));
     }
 
+    Optional<User> findByUuid(UUID uuid);
+
     default User findUserByUuid(UUID uuid) {
         return findById(uuid).orElseThrow(() -> new NoSuchElementException("User not found."));
     }
+
 }

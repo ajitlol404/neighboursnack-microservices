@@ -10,6 +10,7 @@ import org.hibernate.type.SqlTypes;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -57,11 +58,8 @@ public class User {
     @Column(length = 10)
     private String phoneNumber;
 
-    @Column(nullable = false, length = 200)
-    private String address;
-
-    @Column(nullable = false, length = 6)
-    private String pincode;
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<Address> addresses;
 
     @Getter
     @Setter
@@ -77,6 +75,27 @@ public class User {
 
         private boolean secretKeyStatus = false;
 
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Address implements Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private String addressLine1;
+        private String addressLine2;
+        private String city;
+        private String state;
+        private String postalCode;
+        private boolean isDefault;
+
+        private String landmark;
+        private String deliveryInstructions;
     }
 
 }
