@@ -1,5 +1,7 @@
 package com.neighboursnack.common.util;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class AppConstant {
@@ -13,6 +15,7 @@ public class AppConstant {
     public static final String SUPPORT_TEAM = "Neighbour Snack Team";
 
     public static final long MAX_IMAGE_SIZE = 2L * 1024 * 1024; // 2 MB
+    public static final Path IMAGE_DIRECTORY = Paths.get("products/");
     public static final List<String> ALLOWED_IMAGE_EXTENSIONS = List.of("jpg", "jpeg", "png");
     public static final int VERIFICATION_EXPIRATION_MINUTES = 15;
 

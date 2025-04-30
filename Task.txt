@@ -8,3 +8,6 @@
 - Eureka Server        -> http://localhost:8761
 - RabbitMQ UI          -> http://localhost:15672
 - User Service         -> http://localhost:8081 and so on...
+
+3. rabbitmq in product
+=======================
