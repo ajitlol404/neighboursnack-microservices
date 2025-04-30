@@ -1,4 +1,9 @@
+com/neighboursnack/common/dto/PaginationResponse.class
 com/neighboursnack/common/dto/ErrorResponseDTO.class
-com/neighboursnack/common/util/AppUtil.class
+com/neighboursnack/common/dto/AuthDTO.class
 com/neighboursnack/common/exception/SmtpException.class
+com/neighboursnack/common/dto/JwtDTO.class
+com/neighboursnack/common/dto/JwtDTO$JwtResponse.class
+com/neighboursnack/common/util/AppUtil.class
 com/neighboursnack/common/util/AppConstant.class
+com/neighboursnack/common/dto/AuthDTO$LoginRequestDTO.class

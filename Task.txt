@@ -1,0 +1,10 @@
+1. auth-service
+================
+- Send verification and confirmation email
+
+2. port
+================
+- API Gateway          -> http://localhost:8080
+- Eureka Server        -> http://localhost:8761
+- RabbitMQ UI          -> http://localhost:15672
+- User Service         -> http://localhost:8081 and so on...
