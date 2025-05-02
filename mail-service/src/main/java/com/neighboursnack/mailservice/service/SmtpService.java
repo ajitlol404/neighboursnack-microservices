@@ -1,6 +1,7 @@
 package com.neighboursnack.mailservice.service;
 
 
+import com.neighboursnack.common.dto.EmailRequestDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpRequestDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpResponseDTO;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpToggleRequestDTO;
@@ -71,6 +72,6 @@ public interface SmtpService {
 
     Smtp getActiveSmtpEntity();
 
-    void sendEmail(String to, String subject, String content);
+    void sendEmail(EmailRequestDTO emailRequestDTO);
 
 }

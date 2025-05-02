@@ -1,5 +1,6 @@
 package com.neighboursnack.mailservice.service.impl;
 
+import com.neighboursnack.common.dto.EmailRequestDTO;
 import com.neighboursnack.common.exception.SmtpException;
 import com.neighboursnack.common.util.AppUtil;
 import com.neighboursnack.mailservice.dto.SmtpDTO.SmtpRequestDTO;
@@ -132,7 +133,7 @@ public class SmtpServiceImpl implements SmtpService {
     }
 
     @Override
-    public void sendEmail(String to, String subject, String content) {
+    public void sendEmail(EmailRequestDTO emailRequestDTO) {
         Smtp smtpConfig = getActiveSmtpEntity();
 
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -154,9 +155,9 @@ public class SmtpServiceImpl implements SmtpService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, TRUE, "UTF-8");
 
             helper.setFrom(smtpConfig.getUsername());
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(content, true);
+            helper.setTo(emailRequestDTO.toEmail());
+            helper.setSubject(emailRequestDTO.subject());
+            helper.setText(emailRequestDTO.bodyHtml(), true);
             mailSender.send(mimeMessage);
         } catch (Exception e) {
             throw new SmtpException("Failed to send email", e);

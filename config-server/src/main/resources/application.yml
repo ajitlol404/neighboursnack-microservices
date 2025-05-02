@@ -1,0 +1,18 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: git
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/ajitlol404/neighboursnack-microservices-configs.git
+          default-label: main
+          timeout: 10
+          clone-on-start: true
+          force-pull: true
+encrypt:
+  key: GVGV54SSDDEE15148JBI29W987WE1W4A65S4D98ADA65S4
