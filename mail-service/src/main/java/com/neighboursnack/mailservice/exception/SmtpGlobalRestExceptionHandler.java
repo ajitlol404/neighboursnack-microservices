@@ -5,6 +5,7 @@ import com.neighboursnack.common.exception.SmtpException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -74,6 +75,18 @@ public class SmtpGlobalRestExceptionHandler {
         return ErrorResponseDTO.of(
                 BAD_REQUEST.value(),
                 BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                request.getMethod()
+        );
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(METHOD_NOT_ALLOWED)
+    public ErrorResponseDTO handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        return ErrorResponseDTO.of(
+                METHOD_NOT_ALLOWED.value(),
+                METHOD_NOT_ALLOWED.getReasonPhrase(),
                 ex.getMessage(),
                 request.getRequestURI(),
                 request.getMethod()
