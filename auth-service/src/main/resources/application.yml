@@ -1,29 +1,7 @@
-server:
-  port: 8081
 spring:
   application:
     name: auth-service
-  datasource:
-    url: jdbc:h2:mem:auth_service_db
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    database: H2
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-jwt:
-  secret: 3e8fa1ea27a7fed1699503b7577e328e15b1e03440ef47e73a0c63b4d9b9080b94e046c1ffbc689aa039a838bb54eef85afc5a5fb9dd1588ca6d8afee81f77284f6d779b856f5ede5e3478b3c972123ffa1bb6141665331d126e29fd8d674cf3ad58a652821c728b59a7359700cbadbdb71ccbf65c07564b41fbf71ecb36ffed0397cbd913b381c3899aba134c5a1d7ea8e9a6904a20ad28806f69a9ef1e860cda6817b6042ebed7e7296b7846b2234d3370aa666e61b949d7e5053aba22c63d0b9e120f655672db92b4575fcf205dcb3e69e8ffdc62bba4246983c58628b3edcb2d2a2a1d29a5bca7f07162c194812ea521d987c90be95d878f668ce8f7ca2e
-  expiration: 86400000 # 1 day in milliseconds
-  token-prefix: Bearer
-  header-string: Authorization
-  refresh-token:
-    expiration: 604800
-    token-prefix: Bearer
-    header-string: Authorization
+  profiles:
+    active: default
+  config:
+    import: configserver:http://localhost:8888
