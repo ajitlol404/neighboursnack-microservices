@@ -3,6 +3,7 @@ package com.neighboursnack.common.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 public record CategoryFilterRequest(
@@ -14,8 +15,11 @@ public record CategoryFilterRequest(
         @Pattern(regexp = "asc|desc", flags = Pattern.Flag.CASE_INSENSITIVE,
                 message = "Sort direction must be 'asc' or 'desc'")
         String sortDir,
+        String search,
         String name,
-        Boolean isActive
+        Boolean isActive,
+        ZonedDateTime createdFrom,
+        ZonedDateTime createdTo
 ) {
     public CategoryFilterRequest {
         page = Optional.ofNullable(page).orElse(0);
